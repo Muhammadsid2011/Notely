@@ -1,13 +1,16 @@
-import {connectDB} from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
-import { getAuthCookieOptions, getClearAuthCookieOptions, getTokenFromRequest, signToken, verifyToken, hashPassword, comparePassword } from "@/lib/auth";
+import { getAuthCookieOptions, getClearAuthCookieOptions, getTokenFromRequest, signToken, verifyToken, hashPassword } from "@/lib/auth";
 
 // ✅ POST - Create user
 export async function POST(req) {
   try {
     await connectDB();
     const { username, password } = await req.json();
+    if (!username || !password) {
+      return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
+    }
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -34,20 +37,6 @@ export async function GET(req) {
     await connectDB();
     const { searchParams } = new URL(req.url);
     const username = searchParams.get("username");
-    const password = searchParams.get("password");
-
-    if (username && password) {
-      const user = await User.findOne({ username });
-      const validPassword = user ? await comparePassword(password, user.password) : false;
-      if (!user || !validPassword) {
-        return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
-      }
-
-      const token = signToken({ username: user.username, id: user._id.toString() });
-      const response = NextResponse.json({ user: { username: user.username } }, { status: 200 });
-      response.cookies.set("token", token, getAuthCookieOptions());
-      return response;
-    }
 
     if (username) {
       const user = await User.findOne({ username });

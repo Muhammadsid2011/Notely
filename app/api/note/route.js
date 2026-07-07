@@ -12,7 +12,13 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = verifyToken(token);
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { title, desc } = await req.json();
 
     if (!title || !desc) {
@@ -41,7 +47,13 @@ export async function GET(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = verifyToken(token);
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("_id") || searchParams.get("id");
 
@@ -70,7 +82,13 @@ export async function PUT(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    verifyToken(token);
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id, title, desc } = await req.json();
 
     if (!id) {
@@ -78,7 +96,7 @@ export async function PUT(req) {
     }
 
     const existingNote = await Note.findById(id);
-    if (!existingNote || existingNote.username !== (await verifyToken(token)).username) {
+    if (!existingNote || existingNote.username !== payload.username) {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
@@ -111,7 +129,13 @@ export async function DELETE(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    verifyToken(token);
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("_id");
 
@@ -120,7 +144,7 @@ export async function DELETE(req) {
     }
 
     const existingNote = await Note.findById(id);
-    if (!existingNote || existingNote.username !== (await verifyToken(token)).username) {
+    if (!existingNote || existingNote.username !== payload.username) {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
