@@ -29,14 +29,21 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    // Get the username from localStorage to send with the note
-    const storedUser = localStorage.getItem('username');
-    if (storedUser) {
-      setUsername(storedUser);
-    } else {
+    const loadSession = async () => {
+      try {
+        const res = await axios.get('/api/user');
+        if (res.data?.user?.username) {
+          setUsername(res.data.user.username);
+        } else {
+          router.push('/login');
+        }
+      } catch {
         router.push('/login');
-    }
-  }, []);
+      }
+    };
+
+    loadSession();
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,7 +59,6 @@ export default function Page() {
 
     try {
       await axios.post('/api/note', {
-        username,
         title,
         desc: content,
       });

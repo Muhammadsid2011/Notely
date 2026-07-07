@@ -18,19 +18,13 @@ export default function App() {
         setError(null);
 
         try {
-            // send GET request like /api/user/?username=abc
-            const res = await axios.get(`/api/user/?username=${username}`);
-            console.log(res)
+            const res = await axios.post('/api/auth/login', { username, password });
 
-            if (!res.data || res.data.user.password !== password) {
+            if (!res.data || !res.data.user) {
                 setError("Invalid username or password");
                 return;
             }
 
-            // ✅ Store user locally
-            localStorage.setItem("username", username);
-
-            // ✅ Notify other components (like Navbar)
             window.dispatchEvent(new Event("authChange"));
 
             router.push('/');
