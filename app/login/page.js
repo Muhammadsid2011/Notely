@@ -18,25 +18,16 @@ export default function App() {
         setError(null);
 
         try {
-            // send GET request like /api/user/?username=abc
-            const res = await axios.get(`/api/user/?username=${username}`);
-            console.log(res)
-
-            if (!res.data || res.data.user.password !== password) {
-                setError("Invalid username or password");
-                return;
-            }
-
-            // ✅ Store user locally
-            localStorage.setItem("username", username);
-
-            // ✅ Notify other components (like Navbar)
+            const res = await axios.post('/api/auth/login', { username, password });
             window.dispatchEvent(new Event("authChange"));
-
             router.push('/');
         } catch (err) {
             console.error(err);
-            setError("User not found or server error");
+            if (err.response?.status === 401) {
+                setError("Invalid username or password");
+            } else {
+                setError(err.response?.data?.error || "Server error");
+            }
         } finally {
             setLoading(false);
         }
@@ -81,7 +72,7 @@ export default function App() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-emerald-500 focus:border-emerald-500"
-                            placeholder="********"
+                            placeholder="your Password"
                         />
                     </div>
                     <button

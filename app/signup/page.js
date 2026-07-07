@@ -34,10 +34,6 @@ export default function Page() {
             setLoading(true);
             // Simulated API call - replace with real endpoint
             await axios.post('/api/user', { username, password });
-            localStorage.setItem('username', username);
-            
-            // --- FIX ADDED ---
-            // Navigate to the login page after successful signup
             router.push('/'); 
             try { window.dispatchEvent(new Event('authChange')); } catch (e) {}
         }catch (err) {

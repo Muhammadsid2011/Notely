@@ -26,13 +26,22 @@ export default function Page() {
 
 
     useEffect(() => {
-        // On mount, try to get the user from localStorage, fallback to the default
-        const storedUser = localStorage.getItem('username');
-        if (!storedUser) {
-            router.push('/login');
-        }
-        setUsername(storedUser);
-    }, []);
+        const loadSession = async () => {
+            try {
+                const res = await axios.get('/api/user');
+                const currentUser = res.data?.user?.username;
+                if (!currentUser) {
+                    router.push('/login');
+                    return;
+                }
+                setUsername(currentUser);
+            } catch {
+                router.push('/login');
+            }
+        };
+
+        loadSession();
+    }, [router]);
 
     useEffect(() => {
         // Fetch notes when the username is set
@@ -43,7 +52,7 @@ export default function Page() {
             setError(null);
 
             try {
-                const res = await axios.get(`/api/note/?username=${username}`);
+                const res = await axios.get(`/api/note`);
                 console.log(res);
                 setNotes(res.data || []);
 

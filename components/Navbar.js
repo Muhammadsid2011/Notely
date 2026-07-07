@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-// import Link from 'next/link'; // Removed due to build environment limitations
+import axios from 'axios';
 
 // === Icon Components (Self-Contained SVGs) ===
 
@@ -51,17 +51,28 @@ const Navbar = () => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        // Initialize user from localStorage on client
-        const storedUser = localStorage.getItem("username");
-        setUser(storedUser);
+        const loadUser = async () => {
+            try {
+                const res = await axios.get('/api/user');
+                setUser(res.data?.user?.username || null);
+            } catch {
+                setUser(null);
+            }
+        };
 
-        // Keep user state in sync across tabs (storage event) and within the app via a custom event
-        const onStorage = () => setUser(localStorage.getItem("username"));
-        const onAuthChange = () => setUser(localStorage.getItem("username"));
-        window.addEventListener('storage', onStorage);
+        loadUser();
+
+        const onAuthChange = async () => {
+            try {
+                const res = await axios.get('/api/user');
+                setUser(res.data?.user?.username || null);
+            } catch {
+                setUser(null);
+            }
+        };
+
         window.addEventListener('authChange', onAuthChange);
         return () => {
-            window.removeEventListener('storage', onStorage);
             window.removeEventListener('authChange', onAuthChange);
         };
     }, []);
@@ -87,11 +98,14 @@ const Navbar = () => {
         </Link>
     );
 
-    const handleLogout = () => {
-        // Remove locally and update UI state immediately
-        localStorage.removeItem('username');
+    const handleLogout = async () => {
+        try {
+            await axios.post('/api/auth/logout');
+        } catch (e) {
+            console.error(e);
+        }
+
         setUser(null);
-        // Notify other parts of the app (and other tabs) that auth changed
         try { window.dispatchEvent(new Event('authChange')); } catch (e) { }
     };
 
